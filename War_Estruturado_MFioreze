@@ -1,0 +1,122 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define MAX 5
+
+typedef struct {
+    char nome[50];
+    char cor[20];
+    int tropas;
+} Territorio;
+
+void inicializar(Territorio *t) {
+    char *nomes[] = {"Alaska", "Brasil", "China", "Egito", "India"};
+    char *cores[] = {"Vermelho", "Azul", "Verde", "Amarelo", "Preto"};
+
+    for (int i = 0; i < MAX; i++) {
+        strcpy(t[i].nome, nomes[i]);
+        strcpy(t[i].cor, cores[i]);
+        t[i].tropas = rand() % 5 + 1;
+    }
+}
+
+void mostrar(Territorio *t) {
+    printf("\n=== MAPA ===\n");
+    for (int i = 0; i < MAX; i++) {
+        printf("%d - %s | Cor: %s | Tropas: %d\n", 
+               i + 1, t[i].nome, t[i].cor, t[i].tropas);
+    }
+}
+
+void atacar(Territorio *t, int a, int d) {
+    int da = rand() % 6 + 1;
+    int dd = rand() % 6 + 1;
+
+    printf("\n%s atacou %s!\n", t[a].nome, t[d].nome);
+    printf("Ataque: %d | Defesa: %d\n", da, dd);
+
+    if (da >= dd) {
+        t[d].tropas--;
+        printf("Defensor perdeu 1 tropa.\n");
+
+        if (t[d].tropas <= 0) {
+            printf("*** Território conquistado! ***\n");
+            strcpy(t[d].cor, t[a].cor);
+            t[d].tropas = 1;
+        }
+    } else {
+        printf("Defesa venceu, ataque falhou.\n");
+    }
+}
+
+int verificarMissao(int missao, Territorio *t) {
+    if (missao == 1) {
+        for (int i = 0; i < MAX; i++)
+            if (strcmp(t[i].cor, "Verde") == 0)
+                return 0;
+        return 1;
+    }
+
+    if (missao == 2) {
+        int count = 0;
+        char *minhaCor = t[0].cor;
+
+        for (int i = 0; i < MAX; i++)
+            if (strcmp(t[i].cor, minhaCor) == 0)
+                count++;
+        return count >= 3;
+    }
+
+    return 0;
+}
+
+int main() {
+    srand(time(NULL));
+
+    Territorio *t = calloc(MAX, sizeof(Territorio));
+    inicializar(t);
+
+    int missao = rand() % 2 + 1;
+
+    printf("\n=== SUA MISSÃO ===\n");
+    if (missao == 1)
+        printf("1) Destruir o exército Verde.\n");
+    else
+        printf("2) Conquistar 3 territórios.\n");
+
+    int opcao;
+
+    while (1) {
+        printf("\n--- MENU ---\n");
+        printf("1 - Atacar\n");
+        printf("2 - Verificar Missão\n");
+        printf("0 - Sair\n");
+        printf("Escolha: ");
+        scanf("%d", &opcao);
+
+        if (opcao == 0) break;
+
+        if (opcao == 1) {
+            int a, d;
+            mostrar(t);
+            printf("Atacante: ");
+            scanf("%d", &a);
+            printf("Defensor: ");
+            scanf("%d", &d);
+            atacar(t, a - 1, d - 1);
+        }
+        else if (opcao == 2) {
+            if (verificarMissao(missao, t)) {
+                printf("\n*** MISSÃO COMPLETA! VOCÊ VENCEU! ***\n");
+                break;
+            } else {
+                printf("Missão ainda NÃO concluída.\n");
+            }
+        }
+    }
+
+    free(t);
+    return 0;
+}
